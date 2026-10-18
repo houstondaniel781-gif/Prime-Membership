@@ -987,10 +987,16 @@ const TALENT = [
   { name:"Thomas William Selleck", photo:"images/Sellek.jpeg", status:"available", fee:"500$ to 25000$", blurb:"Tom Selleck is an Emmy-winning actor best known for starring in Magnum, P.I., Blue Bloods, and the hit movie Three Men and a Baby." },
   { name:"Johnny Depp", photo:"images/Depp.jpeg", status:"available", fee:"500$ to 25000$", blurb:"Johnny Depp is an Oscar-nominated actor best known for playing Captain Jack Sparrow in the Pirates of the Caribbean franchise, Edward Scissorhands, and Sweeney Todd." },
   { name:"Mark Harmon", photo:"images/Harmon.jpeg", status:"available", fee:"500$ to 25000$", blurb:"Mark Harmon is an American actor best known for starring as Leroy Jethro Gibbs in NCIS, and for roles in Freaky Friday, Summer School, and St. Elsewhere." },
-  { name:"Thomas Mapother(Tom Cruise)", photo:"images/Cruise.jpeg", status:"available", fee:"500$ to 25000$", blurb:"Thomas Mapother IV (better known as Tom Cruise) is an action superstar best known for starring in Top Gun, the Mission: Impossible franchise, and  Jerry Maguire." },
+  { name:"Tom Cruise", photo:"images/Cruise.jpeg", status:"available", fee:"500$ to 25000$", blurb:"Thomas Mapother IV (better known as Tom Cruise) is an action superstar best known for starring in Top Gun, the Mission: Impossible franchise, and  Jerry Maguire." },
   { name:"Morgan Wallen", photo:"images/Morgan.jpeg", status:"available", fee:"500$ to 25000$", blurb:"​Morgan Wallen: Country music superstar best known for record-breaking hits like Last Night and Whiskey Glasses." },
   { name:"Kevin Costner", photo:"images/Costner.jpeg", status:"available", fee:"500$ to 25000$", blurb:"Kevin Costner: Oscar-winning actor and director best known for starring in Yellowstone, Dances with Wolves, and Field of Dreams." },
   { name:"Trace Adkins", photo:"images/Adkins.jpeg", status:"available", fee:"500$ to 25000$", blurb:"​Trace Adkins: Country singer and actor best known for hit songs like You're Gonna Miss This and starring in the movie I Can Only Imagine." },
+  { name:"Alan Jackson", photo:"images/Alan.jpeg", status:"available", fee:"500$ to 25000$", blurb:"​Alan Jackson: Country singer and Songwriter." },
+  { name:"Keith Urban", photo:"images/Keith.jpeg", status:"available", fee:"500$ to 25000$", blurb:"​Keith Urban: Four Time Grammy award winning Country Singer, Songwriter and Guitarist." },
+  { name:"Enno Trebs", photo:"images/Trebs.jpeg", status:"available", fee:"500$ to 25000$", blurb:"​Enno Trebs: Award winning Actor known for his role in The White Ribbon (2009)." },
+  { name:"Michael Fassbender", photo:"images/Bender.jpeg", status:"available", fee:"500$ to 25000$", blurb:"​Michael Fassbender: Multi-Award winning Actor, Gearhead and Movie Producer." },
+  { name:"Thomas Kretschmann", photo:"images/Thomas.jpeg", status:"available", fee:"500$ to 25000$", blurb:"​Thomas Kretschmann: Actor, Screenwriter, Producer. Popular for his role as Baron Wolfgang von Strucker in Captain America' The Winter Soldier (2014)" },
+  
 ];
 
 function initials(n){ return n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase(); }
@@ -1065,16 +1071,17 @@ document.getElementById("searchInput").addEventListener("input", e=>{
 const modalOverlay = document.getElementById("modalOverlay");
 const modalBody = document.getElementById("modalBody");
 const modalTalentName = document.getElementById("modalTalentName");
+const bookingFormOriginalHTML = modalBody.innerHTML; // snapshot so the form can be restored after a confirmation
 
 function openBookingModal(name){
   modalTalentName.textContent = name || "General enquiry";
+  if(!document.getElementById("bookingForm")){
+    modalBody.innerHTML = bookingFormOriginalHTML;
+    attachBookingFormHandler();
+  }
   modalOverlay.classList.add("open");
 }
 function closeBookingModal(){ modalOverlay.classList.remove("open"); }
-
-// No dates in the past.
-const fDateEl = document.getElementById("fDate");
-if(fDateEl) fDateEl.min = new Date().toISOString().split("T")[0];
 
 document.getElementById("modalCloseBtn").addEventListener("click", closeBookingModal);
 modalOverlay.addEventListener("click", e=>{ if(e.target === modalOverlay) closeBookingModal(); });
@@ -1087,63 +1094,63 @@ function attachBookHandlers(){
 }
 attachBookHandlers();
 
-document.getElementById("bookingForm").addEventListener("submit", async e=>{
-  e.preventDefault();
+function attachBookingFormHandler(){
+  const formEl = document.getElementById("bookingForm");
+  if(!formEl) return;
 
-  // Honeypot check — real visitors never fill this in.
-  if(document.getElementById("fCompanyWebsite").value.trim() !== ""){
-    e.target.reset();
-    closeBookingModal();
-    return;
-  }
+  // No dates in the past.
+  const fDateEl = document.getElementById("fDate");
+  if(fDateEl) fDateEl.min = new Date().toISOString().split("T")[0];
 
-  const talentName = modalTalentName.textContent;
-  const submitBtn = e.target.querySelector(".modal-submit");
-  const data = {
-    talent: talentName,
-    eventType: document.getElementById("fEventType").value,
-    date: document.getElementById("fDate").value,
-    budget: document.getElementById("fBudget").value,
-    location: document.getElementById("fLocation").value,
-    name: document.getElementById("fName").value,
-    email: document.getElementById("fEmail").value,
-    phone: document.getElementById("fPhone").value,
-    message: document.getElementById("fMessage").value,
-    sessionId: sessionId,
-    status: "new",
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
+  formEl.addEventListener("submit", async e=>{
+    e.preventDefault();
 
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Sending…";
+    // Honeypot check — real visitors never fill this in.
+    if(document.getElementById("fCompanyWebsite").value.trim() !== ""){
+      e.target.reset();
+      closeBookingModal();
+      return;
+    }
 
-  try{
-    await db.collection("bookings").add(data);
+    const talentName = modalTalentName.textContent;
+    const submitBtn = e.target.querySelector(".modal-submit");
+    const data = {
+      talent: talentName,
+      eventType: document.getElementById("fEventType").value,
+      date: document.getElementById("fDate").value,
+      budget: document.getElementById("fBudget").value,
+      location: document.getElementById("fLocation").value,
+      name: document.getElementById("fName").value,
+      email: document.getElementById("fEmail").value,
+      phone: document.getElementById("fPhone").value,
+      message: document.getElementById("fMessage").value,
+      sessionId: sessionId,
+      status: "new",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
 
-    const summary = "New booking request\n"
-      + "Talent: " + data.talent + "\n"
-      + "Event type: " + data.eventType + "\n"
-      + "Date: " + (data.date || "—") + "\n"
-      + "Budget: " + data.budget + "\n"
-      + "Location: " + data.location + "\n"
-      + "Name: " + data.name + "\n"
-      + "Email: " + data.email + "\n"
-      + (data.phone ? "Phone: " + data.phone + "\n" : "")
-      + (data.message ? "Notes: " + data.message : "");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Sending…";
 
-    closeBookingModal();
-    openChat();
-    await handleUserMessage(summary);
-    addMsg("Thanks — your request has been sent. An agent will follow up right here.", "bot");
-  }catch(err){
-    console.error("Booking save error:", err);
-    alert("Something went wrong sending your request — please check your connection and try again.");
-  }
-
-  e.target.reset();
-  submitBtn.disabled = false;
-  submitBtn.textContent = "Send request";
-});
+    try{
+      await db.collection("bookings").add(data);
+      // Booking goes straight to the admin's Booking requests tab only —
+      // it does not touch the support chat in any way.
+      modalBody.innerHTML = `
+        <div class="confirm-state">
+          <div class="ok"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <h4>Request received</h4>
+          <p>Your request for <strong style="color:var(--ivory)">${data.talent}</strong> is in. A member of our team will follow up by email with availability and a quote.</p>
+        </div>`;
+    }catch(err){
+      console.error("Booking save error:", err);
+      alert("Something went wrong sending your request — please check your connection and try again.");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Send request";
+    }
+  });
+}
+attachBookingFormHandler();
 
 /* ============ LIVE SUPPORT CHAT (visitor side) ============ */
 /* Backed by Firestore — no AI involved. Each visitor gets a session id
